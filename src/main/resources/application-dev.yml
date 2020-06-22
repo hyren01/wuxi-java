@@ -1,0 +1,16 @@
+#这是 测试用 配置文件 ，不对接56的接口
+isJoinWith56: true
+
+#是否开启运维任务
+isMonitor: false
+
+
+
+
+
+
+
+
+
+
+

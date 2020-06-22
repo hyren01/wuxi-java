@@ -1,0 +1,190 @@
+server:
+  port: 8080
+  context-path: /stdglprj/
+  #stdMysqlIpPort: rm-x4jmiadyb51ak7ti5.mysql.rds.inner.env3.wx:3306    #localhost    mysql的ip端口    10.1.22.190
+  stdMysqlIpPort: 139.9.126.19:3306    #localhost    mysql的ip端口    10.1.22.190
+
+spring:
+  profiles:
+    active: pro   #dev：本地测试 ，pro：连赛斯的token验证 ， ukey：ukey验证
+  application:
+    name: microservice-stdcode
+  http:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+  datasource:
+    secondary:
+      driverClassName: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://${server.stdMysqlIpPort}/codeinfo?useSSL=false&serverTimezone=UTC&characterEncoding=utf8&serverTimezone=CTT&autoReconnect=true&failOverReadOnly=false
+      username: metadata
+      #password: 1qaz@WSX
+      password: 123456
+
+    primary:
+      #connect v5.7 mysql
+      driverClassName: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://${server.stdMysqlIpPort}/metadata_management?useSSL=false&serverTimezone=UTC&characterEncoding=utf8&serverTimezone=CTT&autoReconnect=true&failOverReadOnly=false
+
+      #connect home v5.7 mysql
+      #driverClassName: com.mysql.cj.jdbc.Driver
+      #driverClassName: com.mysql.jdbc.Driver
+      #url: jdbc:mysql://127.0.0.1:3306/standard?useSSL=false&serverTimezone=UTC&characterEncoding=utf8&autoReconnect=true&failOverReadOnly=false
+
+      username: metadata
+      #password: 1qaz@WSX
+      password: 123456
+
+      type: com.alibaba.druid.pool.DruidDataSource
+
+      # 下面为连接池的补充设置，应用到上面所有数据源中
+      # 初始化大小，最小，最大
+      initialSize: 5
+      minIdle: 3
+      maxActive: 20
+      # 配置获取连接等待超时的时间
+      maxWait: 60000
+      # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+      timeBetweenEvictionRunsMillis: 60000
+      # 配置一个连接在池中最小生存的时间，单位是毫秒
+      minEvictableIdleTimeMillis: 30000
+      validationQuery: select 'x'
+      testWhileIdle: true
+      testOnBorrow: true
+      testOnReturn: false
+      # 打开PSCache，并且指定每个连接上PSCache的大小
+      poolPreparedStatements: true
+      maxPoolPreparedStatementPerConnectionSize: 20
+      # 配置监控统计拦截的filters，去掉后监控界面sql无法统计，'wall'用于防火墙
+      filters: stat,wall,slf4j
+      # 通过connectProperties属性来打开mergeSql功能；慢SQL记录
+      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+      # 合并多个DruidDataSource的监控数据
+      #useGlobalDataSourceStat: true
+
+
+#    secondary: 
+#      driver-class-name: com.mysql.jdbc.Driver
+#      url: jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8
+#      type: com.alibaba.druid.pool.DruidDataSource
+#      username: metadata
+#      password: 123456   
+  
+  
+ # data:
+    #elasticsearch:
+    #  cluster-name: elasticsearch
+    #  cluster-nodes: 127.0.0.1:9300
+    #  properties:
+    #    transport:
+     #     tcp:
+      #      port: 9300
+       #     connect_timeout: 120s
+      
+    
+  jpa:
+    hibernate:
+      #禁用hibernate驼峰转下划线功能 
+      #naming: 
+      #  physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl 
+      #ddl-auto: update    #更新数据库表
+      ddl-auto: none   
+    show-sql: true
+  logging:
+    #level:
+    #org.hibernate.type.descriptor.sql.BasicBinder: trace
+    config: classpath:logback.xml
+    
+  jackson:
+    serialization:
+      indent_output: true    
+    
+#  thymeleaf:
+#    cache: false
+#    mode: LEGACYHTML5
+
+codeinfojdbc:
+  driverClassName: com.mysql.cj.jdbc.Driver
+  url: jdbc:mysql://${server.stdMysqlIpPort}/codeinfo?useSSL=false&serverTimezone=UTC&characterEncoding=utf8&serverTimezone=CTT&autoReconnect=true&failOverReadOnly=false
+  username: metadata
+  #password: 1qaz@WSX
+  password: 123456
+
+#监控
+management:
+  security:
+    enabled: false
+  endpoints:
+    mappings:
+      sensitive: false
+  port: 9001
+
+
+standard:
+  csvnum: 500
+  csvpath: D:\
+
+
+logfile:
+  logfilepath: /hyren/stdglprj
+  filter: .out
+
+#调用接口地址，在客户现场需要改动(全平，数据质量检测)
+#webapp.interfaceUrl: https://easy-mock.com/mock/5d5baa29094df10de7c80d16/std/getAllDataSource
+webapp.interfaceUrl: http://127.0.0.1:8080/stdglprj/standard/getAllDataSource
+
+
+#cms  登陆
+cmsLoginUrl: http://172.16.35.250/cms/login
+
+#检测是否对接56的接口
+isJoinWith56: true
+#56模型接口(不带token的)       6a
+#56Model_url: http://10.1.21.186:18080/ywsjglprj
+
+#56模型接口       x86
+#56Model_url: http://172.16.35.250:18080/ywsjglprj
+
+#56模型接口(带token的)    6a
+56Model_url: http://10.1.21.186:18443
+#模型列表
+getAllRegisteredModels_url: ${56Model_url}/model/getAllRegisteredModels/
+#模型字段
+getModelInfo_url: ${56Model_url}/model/getModelInfo/
+#获取所有目录
+getAllModelCategory_url: ${56Model_url}/category/getAllCategorys
+#根据目录id获取模型信息
+getTableByCategoryId_url: ${56Model_url}/model/getModelsByCategoryId/
+#根据模型id，获取 模型落在的那些库
+getModuleDBbyMoudleId_url: ${56Model_url}/model/getBornDataSourceIds/
+#根据数据源id，获取数据源信息
+getDataSourceById_url: ${56Model_url}/dataSource/getDataSource/
+
+
+
+#是否开启运维任务
+isMonitor: true
+#36运维接口
+36yw:
+  ipport: http://120.219.101.184:9091
+  apikey: e10adc3949ba59abbe56e057f2gg88dd
+  source: A
+  app_key: stgbhbza27dryh3mjy4pvuqhjvjp3s0r
+  class_code: software
+  useId: 9999081010122301 #这个参数的最后四位，范围是：2301-2399都可以.代表该项目的标识
+  belongRelationId: 9999081010020007    #数据标准管理分系统id
+  belongRelationClassCode: subSystem  #数据标准管理分系统classCode
+#配置上报
+reportConfiguration_url: ${36yw.ipport}/custom/store/openapi/v2/resources/batch_save?apikey=${36yw.apikey}&source=${36yw.source}
+#性能上报
+reportPerformance_url: ${36yw.ipport}/custom/store/openapi/v2/datapoints/push_batch?apikey=${36yw.apikey}
+#状态上报
+reportStatus_url: ${36yw.ipport}/custom/store/openapi/v2/checkpoints/push?apikey=${36yw.apikey}
+#告警
+reportAlert_url: ${36yw.ipport}/custom/alert/openapi/v2/create?apikey=${36yw.apikey}&app_key=${36yw.app_key}
+
+
+
+
+
+

@@ -1,0 +1,49 @@
+eureka:
+  instance:
+    hostname: 172.16.45.227
+    instance-id: ${spring.application.name}:${spring.cloud.client.ip-address}:${spring.application.instance_id:${server.port}}
+  client:
+    service-url:
+      # fetch-register: false
+      # register-with-eureka: false
+      #      defaultZone: http://scistor:scistor@localhost:8761/eureka
+      defaultZone: http://scistor:scistor@172.16.45.227:8761/eureka
+feign:
+  hystrix:
+    enabled: true
+eureka-server: "172.16.45.227"
+### 为了确保Ribbon重试的时候不被熔断，我们就需要让Hystrix的超时时间大于Ribbon的超时时间，否则Hystrix命令超时后，该命令直接熔断，重试机制就没有任何意义了
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          strategy: SEMAPHORE
+          thread:
+            timeoutInMilliseconds: 6000
+jwt:
+  cms-header: scistor-token
+
+
+#kafka log
+spring:
+  kafka:
+    bootstrap-servers: 10.1.22.115:9092
+  producer:
+    retries: 0
+    batch-size: 16384
+    buffer-memory: 33554432
+    acks: 1
+    key-serializer: org.apache.kafka.common.serialization.StringSerializer
+    value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+
+
+
+
+
+
+
+
+
+

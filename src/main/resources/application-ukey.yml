@@ -1,0 +1,36 @@
+#ukey单点登录服务器地址
+cas_url: https://15.0.1.251/verifyToken
+#门户地址
+trx_door_url: 10.1.1.120:8066/portal/api/v1.0/listGetUserInfoByAppIdUserId
+#获取token
+trx_gettoken_url: https://www.trxtopnap.com:8899/get_token
+#token令牌保活
+trx_token_on_line_url: https://15.0.1.251/tokenOnline
+#获取用户信息
+trx_getusermess_url: http://10.1.21.184:8080/usermng/user/getUserByCertId
+#获取用户角色
+trx_getuserrole_url: http://10.1.21.184:8080/usermng/user/getUserRolesByUserId
+
+App_id: 1164
+userid_1000: 1000
+userid_1001: 1001
+userid_2001: 2001
+
+
+
+#kafka log
+spring:
+  kafka:
+    bootstrap-servers: 10.1.22.115:9092
+  producer:
+    retries: 0
+    batch-size: 16384
+    buffer-memory: 33554432
+    acks: 1
+    key-serializer: org.apache.kafka.common.serialization.StringSerializer
+    value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+
+
+
+

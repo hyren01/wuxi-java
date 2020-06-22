@@ -1,0 +1,115 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false">
+    <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径-->
+    <!-- <property name="LOG_HOME" value="E:\\dataSyncLog" /> -->
+    <property name="LOG_HOME" value="/var/stdglprj/logs/%d{yyyy-MM-dd}" />
+    
+    
+    <!-- 控制台输出 -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level[0] %logger{50}  : %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 按照每天生成日志文件 -->
+	<appender name="fileLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+			<level>ERROR</level>
+			<onMatch>DENY</onMatch>  <!-- 如果命中就禁止这条日志 -->
+			<onMismatch>ACCEPT</onMismatch>  <!-- 如果没有命中就使用这条规则 -->
+		</filter>
+	<!-- 设置按尺寸和时间（同时满足）分割 -->		
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<!-- rollover daily -->			
+			<fileNamePattern>${LOG_HOME}/Info.log.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+			<!-- each file should be at most 10MB, keep 30 days worth of history, but at most 3GB -->
+			<maxFileSize>10MB</maxFileSize>
+			<maxHistory>30</maxHistory>
+			<totalSizeCap>1GB</totalSizeCap>
+		</rollingPolicy>		
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level[0] %logger{50}  : %msg%n</pattern>
+		</encoder>
+	</appender>
+
+    <appender name="fileErrorLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>ERROR</level>
+		</filter>
+		<!-- 设置按尺寸和时间（同时满足）分割 -->
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<!-- rollover daily -->			
+			<fileNamePattern>${LOG_HOME}/Error.log.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+			<!-- each file should be at most 10MB, keep 30 days worth of history, but at most 3GB -->
+			<maxFileSize>10MB</maxFileSize>
+			<maxHistory>30</maxHistory>
+			<totalSizeCap>1GB</totalSizeCap>
+		</rollingPolicy>		
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level[0] %logger{50}  : %msg%n</pattern>
+		</encoder>
+        <!-- 所有error日志都在这里-->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        
+    </appender>
+    
+
+    <appender name="JdbcDebugLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
+       <!-- 设置按尺寸和时间（同时满足）分割 -->		
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<!-- rollover daily -->			
+			<fileNamePattern>${LOG_HOME}/JdbcDebug.log.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+			<!-- each file should be at most 10MB, keep 30 days worth of history, but at most 3GB -->
+			<maxFileSize>10MB</maxFileSize>
+			<maxHistory>30</maxHistory>
+			<totalSizeCap>1GB</totalSizeCap>
+		</rollingPolicy>		
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level[0] %logger{50}  : %msg%n</pattern>
+		</encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>DEBUG</level>
+        </filter>
+    </appender>
+
+<!--	<appender name="kafkaAppender" class="com.jn.primiary.beyondsoft.monitor.KafkaAppender">-->
+
+<!--		<logPath>/var/stdglprj/logs</logPath>-->
+<!--		<logFileName>info.log</logFileName>-->
+<!--		<useId>9999081010122301</useId>-->
+<!--		<reportKafkaLogTopic>ops-9s</reportKafkaLogTopic>-->
+<!--		<servers>10.1.20.184:9092</servers>-->
+<!--&lt;!&ndash;		<retries>0</retries>&ndash;&gt;-->
+<!--&lt;!&ndash;		<batchSize>16384</batchSize>&ndash;&gt;-->
+<!--&lt;!&ndash;		<bufferMemory>33554432</bufferMemory>&ndash;&gt;-->
+
+<!--&lt;!&ndash;		<encoder>&ndash;&gt;-->
+<!--&lt;!&ndash;			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level[0] %logger{50}  : %msg%n</pattern>&ndash;&gt;-->
+<!--&lt;!&ndash;		</encoder>&ndash;&gt;-->
+<!--	</appender>-->
+        <!-- 日志输出级别 -->
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="fileLog" />
+        <appender-ref ref="fileErrorLog" />
+<!--		<appender-ref ref="kafkaAppender" />-->
+    </root>
+    
+    <logger name="com.jn.primiary.beyondsoft.dao" level="DEBUG">
+      	<appender-ref ref="JdbcDebugLog" /> 
+    </logger>
+	<logger name="org.hibernate.SQL" additivity="false" >
+		<level value="DEBUG" />
+		<appender-ref ref="JdbcDebugLog" />
+	</logger>
+	<logger name="org.hibernate.type.descriptor.sql.BasicBinder" additivity="false" level="TRACE" >
+	<level value="TRACE" />
+	<appender-ref ref="JdbcDebugLog" />
+	</logger>
+</configuration>
