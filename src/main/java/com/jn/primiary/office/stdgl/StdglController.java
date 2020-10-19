@@ -21,7 +21,7 @@ import com.jn.primiary.office.service.StdModelService;
 
 
 @Controller
-@RequestMapping("/office/stdgl")
+@RequestMapping("stdglprj/office/stdgl")
 public class StdglController {
 	 @Autowired
 	 private DocModelService modelService;

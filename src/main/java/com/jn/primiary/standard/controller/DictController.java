@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @Date 2019-07-22 
  */
 @Controller
-@RequestMapping("/dict")
+@RequestMapping("stdglprj/dict")
 public class DictController {
 
 }

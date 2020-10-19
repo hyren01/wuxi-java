@@ -3,6 +3,8 @@ package com.jn.primiary.beyondsoft.entity.yunwei;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
+import java.util.List;
+
 /**
  * 配置上报 实体
  */
@@ -13,6 +15,14 @@ public class YWConfigurationReportEntity {
     private String classCode;
     private String desc;
     private JSONObject belongRelation;
+    private String useDepartment;
+    private String appVersion;
+    private long appPublishTime;
+    private String operations;
+    private List<String> apiServicesIP;
+    private JSONArray useRelation;
+    private String ip;
+    private List<String> apiIP;
 
     public static class YWConfigurationReportEntityBuilder{
         YWConfigurationReportEntity entity = new YWConfigurationReportEntity();
@@ -39,6 +49,7 @@ public class YWConfigurationReportEntity {
             entity.setBelongRelation(belongRelation);
             return this;
         }
+
 
 
         public YWConfigurationReportEntity build(){
@@ -86,5 +97,69 @@ public class YWConfigurationReportEntity {
 
     public void setBelongRelation(JSONObject belongRelation) {
         this.belongRelation = belongRelation;
+    }
+
+    public String getUseDepartment() {
+        return useDepartment;
+    }
+
+    public void setUseDepartment(String useDepartment) {
+        this.useDepartment = useDepartment;
+    }
+
+    public String getAppVersion() {
+        return appVersion;
+    }
+
+    public void setAppVersion(String appVersion) {
+        this.appVersion = appVersion;
+    }
+
+    public long getAppPublishTime() {
+        return appPublishTime;
+    }
+
+    public void setAppPublishTime(long appPublishTime) {
+        this.appPublishTime = appPublishTime;
+    }
+
+    public String getOperations() {
+        return operations;
+    }
+
+    public void setOperations(String operations) {
+        this.operations = operations;
+    }
+
+    public  List<String> getApiServicesIP() {
+        return apiServicesIP;
+    }
+
+    public void setApiServicesIP( List<String> apiServicesIP) {
+        this.apiServicesIP = apiServicesIP;
+    }
+
+    public JSONArray getUseRelation() {
+        return useRelation;
+    }
+
+    public void setUseRelation(JSONArray useRelation) {
+        this.useRelation = useRelation;
+    }
+
+    public String getIp() {
+        return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
+    public List<String> getApiIP() {
+        return apiIP;
+    }
+
+    public void setApiIP(List<String> apiIP) {
+        this.apiIP = apiIP;
     }
 }

@@ -30,7 +30,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 
 @Controller
-@RequestMapping("/model")
+@RequestMapping("stdglprj/model")
 public class ModelController implements CheckLoginEndPoint {
 	
 	@Autowired

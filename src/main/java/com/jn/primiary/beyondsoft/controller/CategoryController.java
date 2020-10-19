@@ -18,7 +18,7 @@ import java.util.Map;
  */
 @Validated
 @Controller
-@RequestMapping("/category")
+@RequestMapping("stdglprj/category")
 public class CategoryController{
 
     @Autowired

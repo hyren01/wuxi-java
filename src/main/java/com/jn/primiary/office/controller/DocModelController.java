@@ -31,7 +31,7 @@ import com.jn.primiary.office.service.StdModelService;
 
 @CrossOrigin
 @Controller
-@RequestMapping("/docmodel")
+@RequestMapping("stdglprj/docmodel")
 public class DocModelController{
 	private Logger logger = Logger.getLogger(DocModelController.class);
 
@@ -154,6 +154,8 @@ public class DocModelController{
 		 response.setResultCode(ResultCode.RESULT_SUCCESS);
 		 response.setMessage("解析入库上传标准成功");
 		 logger.info("写入数据库完成");
+		 //记录操作日志
+
 	     return response;
 	 }
 

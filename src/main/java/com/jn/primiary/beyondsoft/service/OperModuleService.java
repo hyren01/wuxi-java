@@ -9,6 +9,7 @@ import com.jn.primiary.beyondsoft.util.ComUtil;
 import com.jn.primiary.beyondsoft.util.ConnUtil;
 import com.jn.primiary.beyondsoft.vo.CodeValueVo;
 import com.jn.primiary.beyondsoft.vo.OperStandardAndCodeVo;
+import com.jn.primiary.beyondsoft.vo.OperStandardAndCodeVo2;
 import com.jn.primiary.metadata.entity.BaseResponse;
 import com.jn.primiary.metadata.utils.CommonUtil;
 import com.jn.primiary.office.entity.OperDocStdModel;
@@ -54,11 +55,11 @@ public class OperModuleService {
     DbInfo3Repository dbInfo3Repository;
 
     //查询所有的操作记录
-    public List<OperStandardAndCodeVo> getAllStandard(String dbId) {
+    public List<OperStandardAndCodeVo2> getAllStandard(String dbId) {
         List<Object[]> operStandardAndCode = operModuleRepository.getOperStandardAndCodeTable(dbId);
-        List<OperStandardAndCodeVo> standardAndCodeVoList = new ArrayList<>();
+        List<OperStandardAndCodeVo2> standardAndCodeVoList = new ArrayList<>();
         try {
-            standardAndCodeVoList = ComUtil.castEntity(operStandardAndCode, OperStandardAndCodeVo.class);
+            standardAndCodeVoList = ComUtil.castEntity(operStandardAndCode, OperStandardAndCodeVo2.class);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -98,14 +99,14 @@ public class OperModuleService {
         try {
             //设置数据库记录的审核状态
             for (Dbinfo2 dbinfo2 : allDbInfo) {
-                List<OperStandardAndCodeVo> DSH_list = new ArrayList<>();
-                List<OperStandardAndCodeVo> SHTG_list = new ArrayList<>();
-                List<OperStandardAndCodeVo> SHJJ_list = new ArrayList<>();
+                List<OperStandardAndCodeVo2> DSH_list = new ArrayList<>();
+                List<OperStandardAndCodeVo2> SHTG_list = new ArrayList<>();
+                List<OperStandardAndCodeVo2> SHJJ_list = new ArrayList<>();
 
                 List<Object[]> operlist = operModuleRepository.getOperStandardAndCodeTable(dbinfo2.getDb_id());
-                List<OperStandardAndCodeVo> operStandardAndCodeVos = ComUtil.castEntity(operlist, OperStandardAndCodeVo.class);
+                List<OperStandardAndCodeVo2> operStandardAndCodeVos = ComUtil.castEntity(operlist, OperStandardAndCodeVo2.class);
                 //标准和码表是否全部通过
-                for (OperStandardAndCodeVo mess : operStandardAndCodeVos) {
+                for (OperStandardAndCodeVo2 mess : operStandardAndCodeVos) {
                     if(mess.getIsAuth().equals(String.valueOf(AuthType.DSH.getCode()))){
                         DSH_list.add(mess);
                     }else if(mess.getIsAuth().equals(String.valueOf(AuthType.SHTG.getCode()))){
@@ -270,7 +271,7 @@ public class OperModuleService {
             return driver;
         }
         if(dbTYPE.contains("mysql")){
-            driver = "com.mysql.cj.jdbc.Driver";
+            driver = "com.mysql.jdbc.Driver";
             return driver;
         }
         if(dbTYPE.contains("SQLServer 2000")){
@@ -423,7 +424,7 @@ public class OperModuleService {
         String isAuth = String.valueOf(AuthType.DSH.getCode());
         String status = String.valueOf(Status.JIHUO.getCode());
         String dbId = CommonUtil.getUUID();
-        List<OperStandardAndCodeVo> operStandardAndCodeVoList = this.getAllStandard(db_id);
+        List<OperStandardAndCodeVo2> operStandardAndCodeVoList = this.getAllStandard(db_id);
         Dbinfo2 dbInfo = this.getDbInfo(db_id);
         Dbinfo2 dbinfo2 = new Dbinfo2();
         dbinfo2.setDb_id(dbId);
@@ -440,7 +441,7 @@ public class OperModuleService {
         this.saveDbinfo(dbinfo2);
         dBinfoRepository.updateDbInfo2ById(db_id,String.valueOf(Status.SHIXIAO.getCode()));
         String newBatchNo = ComUtil.getBatchNo();
-        for (OperStandardAndCodeVo operStandardAndCodeVo : operStandardAndCodeVoList) {
+        for (OperStandardAndCodeVo2 operStandardAndCodeVo : operStandardAndCodeVoList) {
             String name = operStandardAndCodeVo.getName();
             String code = operStandardAndCodeVo.getCode();
             String tableName = operStandardAndCodeVo.getEnName();

@@ -26,7 +26,7 @@ import com.jn.primiary.standard.service.StandardService;
  * @Date 2019-07-22 
  */
 @Controller
-@RequestMapping("/check")
+@RequestMapping("stdglprj/check")
 public class CheckController {
 	
 	

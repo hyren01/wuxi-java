@@ -11,6 +11,7 @@ import com.jn.primiary.beyondsoft.util.ComUtil;
 import com.jn.primiary.beyondsoft.util.UserContextUtil;
 import com.jn.primiary.beyondsoft.vo.CodeValueVo;
 import com.jn.primiary.beyondsoft.vo.OperStandardAndCodeVo;
+import com.jn.primiary.beyondsoft.vo.OperStandardAndCodeVo2;
 import com.jn.primiary.metadata.entity.BaseResponse;
 import com.jn.primiary.metadata.entity.ResultCode;
 import com.jn.primiary.metadata.utils.CommonUtil;
@@ -33,7 +34,7 @@ import java.util.List;
  * 标准操作类
  */
 @Controller
-@RequestMapping(value = "/operModule")
+@RequestMapping("stdglprj/operModule")
 public class OperModuleController{
 
     @Autowired
@@ -44,9 +45,9 @@ public class OperModuleController{
     //根据数据库id查询所有的操作记录
     @ResponseBody
     @RequestMapping(value = "/getAllStandardInfo",method = RequestMethod.POST)
-    public BaseResponse<OperStandardAndCodeVo> getAllStandardInfo(@RequestParam String db_id){
-        List<OperStandardAndCodeVo> operStandardAndCodeVoList = operModuleService.getAllStandard(db_id);
-        BaseResponse<OperStandardAndCodeVo> response = new BaseResponse<>();
+    public BaseResponse<OperStandardAndCodeVo2> getAllStandardInfo(@RequestParam String db_id){
+        List<OperStandardAndCodeVo2> operStandardAndCodeVoList = operModuleService.getAllStandard(db_id);
+        BaseResponse<OperStandardAndCodeVo2> response = new BaseResponse<>();
         response.setResultCode(ResultCode.RESULT_SUCCESS);
         response.setData(operStandardAndCodeVoList);
         return response;

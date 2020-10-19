@@ -4,6 +4,7 @@ package com.jn.primiary.beyondsoft.controller;
 import com.alibaba.fastjson.JSONArray;
 import com.jn.primiary.beyondsoft.aspect.LoginWhitePathAnnotation;
 import com.jn.primiary.beyondsoft.entity.CodeInfo;
+import com.jn.primiary.beyondsoft.entity.CommonException;
 import com.jn.primiary.beyondsoft.entity.OperStandard;
 import com.jn.primiary.beyondsoft.entity.Standard;
 import com.jn.primiary.beyondsoft.service.SchemaModuleService;
@@ -13,6 +14,7 @@ import com.jn.primiary.beyondsoft.vo.*;
 import com.jn.primiary.metadata.entity.BaseResponse;
 import com.jn.primiary.metadata.entity.ResultCode;
 import com.jn.primiary.metadata.utils.StringUtils;;
+import org.apache.log4j.Logger;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -34,16 +36,18 @@ import java.util.*;
  */
 @Validated
 @Controller
-@RequestMapping("/newstandard")
-public class SchemaModuleController{
+@RequestMapping("stdglprj/newstandard")
+public class SchemaModuleController {
+
+    private Logger logger = Logger.getLogger(SchemaModuleService.class);
 
     @Autowired
     SchemaModuleService standardservice;
 
 
-    @RequestMapping(path = "/getAllStd",method = RequestMethod.POST)
+    @RequestMapping(path = "/getAllStd", method = RequestMethod.POST)
     @ResponseBody
-    public BaseResponse<Standard> getAllStd(){
+    public BaseResponse<Standard> getAllStd() {
         BaseResponse<Standard> response = new BaseResponse<Standard>();
         List<Standard> liststand = null;
         try {
@@ -67,7 +71,7 @@ public class SchemaModuleController{
     @LoginWhitePathAnnotation
     @RequestMapping(value = "/getStandardList", method = RequestMethod.POST)
     @ResponseBody
-    public BaseResponse<StandardVo> getStandardList(@Pattern(regexp = "^\\w+$",message = "请输入正确的目录id") @RequestParam String categoryId) throws Exception {
+    public BaseResponse<StandardVo> getStandardList(@Pattern(regexp = "^\\w+$", message = "请输入正确的目录id") @RequestParam String categoryId) throws Exception {
         BaseResponse<StandardVo> response = new BaseResponse<StandardVo>();
         List<StandardVo> liststand = standardservice.getAllStandardInfo(categoryId);
         response.setResultCode(ResultCode.RESULT_SUCCESS);
@@ -99,16 +103,29 @@ public class SchemaModuleController{
      */
     @RequestMapping(value = "/getStandardListByPage", method = RequestMethod.POST)
     @ResponseBody
-    public Map<String, Object> getStandardListByPage(@RequestBody Map<String,String> paramMap) throws Exception {
+    public Map<String, Object> getStandardListByPage(@RequestBody Map<String, String> paramMap) throws Exception {
         String categoryId = paramMap.get("categoryId");
         String pagenum = paramMap.get("pagenum");
         String size = paramMap.get("size");
-
-        BaseResponse<StandardVo> response = new BaseResponse<StandardVo>();
-        Map<String, Object> map = standardservice.getAllStandardInfoByPage(categoryId, pagenum, size);
-        map.put("resultcode", ResultCode.RESULT_SUCCESS);
-        map.put("message", "获取信息成功");
-        return map;
+        String key = paramMap.get("key");
+        if (StringUtils.isEmpty(key)) {
+            BaseResponse<StandardVo> response = new BaseResponse<StandardVo>();
+            Map<String, Object> map = standardservice.getAllStandardInfoByPage(categoryId, pagenum, size);
+            map.put("resultcode", ResultCode.RESULT_SUCCESS);
+            map.put("message", "获取信息成功");
+            return map;
+        } else {
+            BaseResponse<StandardVo> response = new BaseResponse<StandardVo>();
+            Map<String, Object> resultmap = new HashMap<>();
+            try {
+                resultmap = standardservice.searchStandard(paramMap);
+                resultmap.put("resultcode", ResultCode.RESULT_SUCCESS);
+                resultmap.put("message", "获取信息成功");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return resultmap;
+        }
     }
 
     /**
@@ -164,8 +181,8 @@ public class SchemaModuleController{
     @LoginWhitePathAnnotation
     @RequestMapping(value = "/getStandardById", method = RequestMethod.POST)
     @ResponseBody
-    public BaseResponse getStandardById(@Pattern(regexp = "^\\w+$",message = "请输入正确的标准id") @RequestParam String stdId,
-                                        @Pattern(regexp = "^[0-9]*$",message = "请输入正确的版本号") @RequestParam String version,
+    public BaseResponse getStandardById(@Pattern(regexp = "^\\w+$", message = "请输入正确的标准id") @RequestParam String stdId,
+                                        @Pattern(regexp = "^[0-9]*$", message = "请输入正确的版本号") @RequestParam String version,
                                         @RequestParam String batchNo) {
         BaseResponse response = new BaseResponse();
         if (!StringUtils.isEmpty(batchNo)) {
@@ -341,12 +358,12 @@ public class SchemaModuleController{
     @ResponseBody
     public Map<String, Object> searchStandard(@RequestBody Map<String, String> map) throws Exception {
         String pagenum = map.get("pagenum");
-        if(!pagenum.matches("^[0-9]*$")){
+        if (!pagenum.matches("^[0-9]*$")) {
             throw new Exception("请输入正确的页数");
         }
 
         String size = map.get("size");
-        if(!size.matches("^[0-9]*$")){
+        if (!size.matches("^[0-9]*$")) {
             throw new Exception("请输入正确的显示数量");
         }
 
@@ -365,6 +382,42 @@ public class SchemaModuleController{
         return resultmap;
 
     }
+
+
+    /**
+     * 根据码表英文名查看码表
+     *
+     * @param key
+     * @param pagenum
+     * @param size
+     * @return
+     */
+    @RequestMapping(value = "/searchStandardInterface", method = RequestMethod.POST)
+    @ResponseBody
+    public BaseResponse searchStandardInterface(@Pattern(regexp = "^\\w+$", message = "请输入正确的页数") @RequestParam String key,
+                                                @Pattern(regexp = "^[0-5]*$", message = "请输入正确的审核状态") @RequestParam String pagenum,
+                                                @Pattern(regexp = "^[0-5]*$", message = "请输入正确的审核状态") @RequestParam String size) {
+        BaseResponse response = null;
+        try {
+            response = new BaseResponse();
+            Map<String, String> map = new HashMap<>();
+            map.put("key", key);
+            map.put("pagenum", pagenum);
+            map.put("size", size);
+            Map<String, Object> resultmap = new HashMap<>();
+            List<Map<String, Object>> resultlist = new ArrayList<>();
+            resultmap = standardservice.searchStandard(map);
+            resultlist.add(resultmap);
+            response.setResultCode(ResultCode.RESULT_SUCCESS);
+            response.setData(resultlist);
+            response.setMessage("获取信息成功");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return response;
+    }
+
 
     /**
      * 确定导入数据库
@@ -397,18 +450,25 @@ public class SchemaModuleController{
         out.flush();
         out.close();
 
-}
+    }
 
     @RequestMapping(value = "/importStandard", method = RequestMethod.POST)
     @ResponseBody
-    public void importExcel(MultipartFile file) throws Exception {
+    public BaseResponse importExcel(MultipartFile file) throws CommonException {
         if (!file.getOriginalFilename().matches("^.+\\.(?i)(xls)$")
                 && !file.getOriginalFilename().matches("^.+\\.(?i)(xlsx)$")) {
             //log.error("上传文件格式不正确");
         } else {
             standardservice.importExcel(file);
-        }
 
+        }
+        BaseResponse response = null;
+        response = new BaseResponse();
+        response.setResultCode(ResultCode.RESULT_SUCCESS);
+//        response.setData(resultlist);D
+        response.setMessage("上传成功");
+        logger.info("上传完成");
+        return response;
     }
 
     @RequestMapping(value = "/exportStandardToExcel", method = RequestMethod.GET)
@@ -420,6 +480,7 @@ public class SchemaModuleController{
 
     /**
      * 根据目录 获取码表信息
+     *
      * @param categoryId
      * @return
      * @throws Exception
@@ -435,9 +496,6 @@ public class SchemaModuleController{
         response.setMessage("查询成功");
         return response;
     }
-
-
-
 
 
 }

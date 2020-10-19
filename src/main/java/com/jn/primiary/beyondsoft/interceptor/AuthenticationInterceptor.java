@@ -1,6 +1,10 @@
 package com.jn.primiary.beyondsoft.interceptor;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.jn.primiary.beyondsoft.api.APIController;
+import com.jn.primiary.beyondsoft.api.service.APIService;
+import com.jn.primiary.beyondsoft.entity.yunwei.YwData;
 import com.jn.primiary.beyondsoft.strategy.aspect.AbstracyAspectStrategy;
 import com.jn.primiary.beyondsoft.strategy.aspect.DevAspect;
 import com.jn.primiary.beyondsoft.strategy.aspect.SaiSiAspect;
@@ -17,8 +21,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -29,7 +35,13 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     @Value("${spring.profiles.active}")
     private String tokenAspectType;
 
-    private String[] allowurl={
+    public static List<YwData> getLoglist() {
+        return loglist;
+    }
+
+    public static List<YwData> loglist = new ArrayList<>();
+
+    private String[] allowurl = {
             //登录
             "/stdglprj/sysuser/login",
             //swagger
@@ -72,10 +84,13 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object object) throws Exception {
         List<String> allowUrlList = Arrays.asList(allowurl);
         String url = request.getRequestURI();
-        logger.info("请求的url："+url);
-        if(!StringUtils.isEmpty(url)){
+        logger.info("请求的url：" + url);
+        APIController apiController = new APIController();
+        YwData lastestLog = apiController.getLastestLog(url);
+        loglist.add(lastestLog);
+        if (!StringUtils.isEmpty(url)) {
             for (String tmpurl : allowurl) {
-                if(url.startsWith(tmpurl)){
+                if (url.startsWith(tmpurl)) {
                     return true;
                 }
             }
@@ -83,15 +98,15 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
 
         boolean result = false;
         AbstractInterceptorStrategy ais = null;
-        if("pro".equals(tokenAspectType)){
+        if ("pro".equals(tokenAspectType)) {
             //saisi
-            ais = new SaiSiInterceptor(tokenAspectType,request);
-        }else if("ukey".equals(tokenAspectType)){
+            ais = new SaiSiInterceptor(tokenAspectType, request);
+        } else if ("ukey".equals(tokenAspectType)) {
             //ukey
-            ais = new UkeyInterceptor(tokenAspectType,request);
-        }else{
+            ais = new UkeyInterceptor(tokenAspectType, request);
+        } else {
             //本地测试
-            ais = new DevInterceptor(tokenAspectType,request);
+            ais = new DevInterceptor(tokenAspectType, request);
         }
         result = ais.interceptorFunction();
         return result;

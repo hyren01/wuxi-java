@@ -89,13 +89,19 @@ public class SchemaModuleService {
         if ("0".equals(categoryId)) {
             categoryId = "";
         }
-        List<Object[]> objList = operModuleRepository.getAllStandardInfo(categoryId);
+        List<Object[]> objList = new ArrayList<Object[]>();
+        if (StringUtils.isBlank(categoryId)) {
+            objList = operModuleRepository.getAllStandardInfo2();
+        } else {
+            objList = operModuleRepository.getAllStandardInfo(categoryId);
+        }
         if (objList.size() > 0) {
             operStandardList = ComUtil.castEntity(objList, StandardVo.class);
         }
 
         return operStandardList;
     }
+
 
     /**
      * 查询审核通过的标准列表
@@ -107,7 +113,12 @@ public class SchemaModuleService {
         if ("0".equals(categoryId)) {
             categoryId = "";
         }
-        List<Object[]> objList = operModuleRepository.getAllSHTGStandardInfo(categoryId);
+        List<Object[]> objList = new ArrayList<>();
+        if (StringUtils.isBlank(categoryId)) {
+            objList = operModuleRepository.getAllSHTGStandardInfo2();
+        } else {
+            objList = operModuleRepository.getAllSHTGStandardInfo(categoryId);
+        }
         if (objList.size() > 0) {
             operStandardList = ComUtil.castEntity(objList, StandardVo.class);
         }
@@ -117,6 +128,7 @@ public class SchemaModuleService {
 
     /**
      * 递归     查询审核通过的标准列表
+     *
      * @param categoryId
      * @return
      * @throws Exception
@@ -130,12 +142,18 @@ public class SchemaModuleService {
         //获取当前目录下的所有子目录
         List<String> childCategoryIdList = new ArrayList<>();
         childCategoryIdList.add(categoryId);
-        getCategoryChild(categoryId,childCategoryIdList);
+        getCategoryChild(categoryId, childCategoryIdList);
 
         for (int i = 0; i < childCategoryIdList.size(); i++) {
             String tmpCategoryId = childCategoryIdList.get(i);
-            logger.info("category_id:"+tmpCategoryId);
-            List<Object[]> objList = operModuleRepository.getAllSHTGStandardInfo(tmpCategoryId);
+            logger.info("category_id:" + tmpCategoryId);
+            List<Object[]> objList = new ArrayList<>();
+            if (StringUtils.isBlank(tmpCategoryId)) {
+                objList = operModuleRepository.getAllSHTGStandardInfo2();
+            } else {
+                objList = operModuleRepository.getAllSHTGStandardInfo(tmpCategoryId);
+            }
+//            List<Object[]> objList = operModuleRepository.getAllSHTGStandardInfo(tmpCategoryId);
             operStandardList.addAll(ComUtil.castEntity(objList, StandardVo.class));
         }
 
@@ -168,48 +186,64 @@ public class SchemaModuleService {
         map.put("operStandardList", operStandardList);
         return map;
     }*/
-
     public Map<String, Object> getAllStandardInfoByPage(String categoryId, String pagenum, String size) throws Exception {
+        long start = System.currentTimeMillis();
+        logger.info("开始时间：" + start);
         Map<String, Object> map = new HashMap<>();
         List<StandardVo> operStandardList = new ArrayList<>();
         //如果根目录（categoryId = 0），就把categoryId =“”
-        if (StringUtils.isEmpty(categoryId)) {
-            categoryId = "0";
-        }
 
+        int count = 0;
         //获取当前目录下的所有子目录
         List<String> childCategoryIdList = new ArrayList<>();
         childCategoryIdList.add(categoryId);
-        getCategoryChild(categoryId,childCategoryIdList);
-
-        //int startindex = Integer.valueOf(pagenum) * Integer.valueOf(size) - Integer.valueOf(size);
-        int count = 0;
-        for (int i = 0; i < childCategoryIdList.size(); i++) {
-            count += operModuleRepository.getAllStandardInfoCount(childCategoryIdList.get(i));
-
-            List<Object[]> objList = operModuleRepository.getAllStandardInfo(childCategoryIdList.get(i));
+        getCategoryChild(categoryId, childCategoryIdList);
+        for (String id : childCategoryIdList) {
+            System.out.println(id);
+        }
+        if (StringUtils.isEmpty(categoryId)) {
+            count = operModuleRepository.getAllStandardInfoCount();
+            List<Object[]> objList = operModuleRepository.getAllStandardInfo();
             if (objList.size() > 0) {
                 operStandardList.addAll(ComUtil.castEntity(objList, StandardVo.class));
             }
+        } else {
+            logger.info("childCategoryIdList:" + childCategoryIdList.size());
+            for (int i = 0; i < childCategoryIdList.size(); i++) {
+                count += operModuleRepository.getAllStandardInfoCount(childCategoryIdList.get(i));
+                logger.info("operModuleRepository.getAllStandardInfoCount(childCategoryIdList.get(i));:" + operModuleRepository.getAllStandardInfoCount(childCategoryIdList.get(i)));
+                List<Object[]> objList = new ArrayList<Object[]>();
+                if (StringUtils.isBlank(childCategoryIdList.get(i))) {
+                    objList = operModuleRepository.getAllStandardInfo2();
+                } else {
+                    objList = operModuleRepository.getAllStandardInfo(childCategoryIdList.get(i));
+                }
+//                List<Object[]> objList = operModuleRepository.getAllStandardInfo(childCategoryIdList.get(i));
+                if (objList.size() > 0) {
+                    operStandardList.addAll(ComUtil.castEntity(objList, StandardVo.class));
+                }
+            }
         }
-
-        List<StandardVo> resultList = PageUtil.doPage(operStandardList,Integer.valueOf(pagenum),Integer.valueOf(size));
+        List<StandardVo> resultList = PageUtil.doPage(operStandardList, Integer.valueOf(pagenum), Integer.valueOf(size));
         map.put("count", count);
         map.put("operStandardList", resultList);
-
+        long end = System.currentTimeMillis();
+        logger.info("结束时间：" + end);
+        logger.info("耗时：" + (end - start));
         return map;
     }
 
     /**
      * 递归找某个目录下的子目录
+     *
      * @param categoryId
      */
-    public void getCategoryChild(String categoryId,List<String> childCategoryIdList){
+    public void getCategoryChild(String categoryId, List<String> childCategoryIdList) {
         List<CategoryInfo> categoryInfoList = categoryRepository.findCategoryInfoByParentId(categoryId);
-        if(categoryInfoList.size() > 0 ){
+        if (categoryInfoList.size() > 0) {
             for (int i = 0; i < categoryInfoList.size(); i++) {
                 childCategoryIdList.add(categoryInfoList.get(i).getId());
-                getCategoryChild(categoryInfoList.get(i).getId(),childCategoryIdList);
+                getCategoryChild(categoryInfoList.get(i).getId(), childCategoryIdList);
             }
         }
     }
@@ -233,6 +267,7 @@ public class SchemaModuleService {
         operModuleRepository.saveOperMoudle(operStandard);
         /*修改的标准数据进操作表 end*/
         //新增复合型对象(如果有)
+//        logger.info("operStandard.getStandardObject().size(): " + operStandard.getStandardObject().size());
         if (operStandard.getStandardObject().size() > 0) {
             for (OperStandardObject operObject : operStandard.getStandardObject()) {
                 /*新增的标准对象数据进操作表 start*/
@@ -244,8 +279,12 @@ public class SchemaModuleService {
                 operObjectRepository.saveOperObject(operObject);
                 /*新增的标准对象数据进操作表 end*/
                 //复合对象下的属性
+//                logger.info("operObject.getStandardField().size():" + operObject.getStandardField().size());
                 for (OperStandardField operField : operObject.getStandardField()) {
-                    /*新增的字段数据进操作表 start*/
+//                    /*新增的字段数据进操作表 start*/
+//                    logger.info("operField.getRequired():" + operField.getRequired());
+//                    logger.info("operField.getRequired().equals(\"true\"):" + operField.getRequired().equals("true"));
+                    operField.setRequired(operField.getRequired().equals("true") || operField.getRequired().equals("O") ? "O" : "o");
                     operField.setBatchNo(batchNo);
                     operField.setId(CommonUtil.getUUID());
                     operField.setDataType(String.valueOf(DataType.ADD.getCode()));
@@ -259,9 +298,12 @@ public class SchemaModuleService {
                 }
             }
         } else {
-            //新增标准字段
+            //新增标准字段importStandard
             for (OperStandardField operField : operStandard.getStandardField()) {
                 /*新增的字段数据进操作表 start*/
+//                logger.info("operField.getRequired():" + operField.getRequired());
+//                logger.info("operField.getRequired().equals(\"true\"):" + operField.getRequired().equals("true"));
+                operField.setRequired(operField.getRequired().equals("true") || operField.getRequired().equals("O") ? "O" : "o");
                 operField.setBatchNo(batchNo);
                 operField.setId(CommonUtil.getUUID());
                 operField.setDataType(String.valueOf(DataType.ADD.getCode()));
@@ -608,7 +650,7 @@ public class SchemaModuleService {
             tmp_codeinfotablename = "";
             String create_sql = "create table " + operCodeInfo.getCodetableEname() + " (id varchar(32),code_ename varchar(512)," +
                     "code_cname varchar(512),code_value varchar(512)) engine = InnoDB default charset = utf8";
-            String insert_sql = "insert into " + operCodeInfo.getCodetableEname() + "(id,code_ename,code_cname,code_value) values " +
+            String insert_sql = "insert into " + operCodeInfo.getCodetableEname() + " (id,code_ename,code_cname,code_value) values " +
                     "(?,?,?,?)";
             String drop_sql = "drop table " + operCodeInfo.getCodetableEname();
 
@@ -728,7 +770,9 @@ public class SchemaModuleService {
         return schemaModuleRepository.getAllStandardInfo();
     }
 
+    //模糊查询数据，由于mysql查询过慢，所以将数据拉取到本地进行内存处理
     public Map<String, Object> searchStandard(Map<String, String> map) throws Exception {
+        long allstart = System.currentTimeMillis();
         Map<String, Object> resultmap = new HashMap<>();
         String searchword = map.get("key");
         String pagenum = map.get("pagenum");
@@ -736,14 +780,44 @@ public class SchemaModuleService {
         List<StandardVo> operStandardList = new ArrayList<>();
 
         int startindex = Integer.valueOf(pagenum) * Integer.valueOf(size) - Integer.valueOf(size);
-        Integer count = operModuleRepository.searchStandardCount(searchword);
-        resultmap.put("count", count);
-
-        List<Object[]> objList = operModuleRepository.searchStandard(searchword, startindex, Integer.valueOf(size));
+//        Integer count = operModuleRepository.searchStandardCount(searchword);
+//        resultmap.put("count", count);
+        long start = System.currentTimeMillis();
+        logger.info("开始时间：" + start);
+        List<Object[]> objList = operModuleRepository.searchStandard(searchword);
+        long searchStandardtime = System.currentTimeMillis();
+        logger.info("searchStandard时间：" + (searchStandardtime - start));
+        List<Object[]> objList2 = operModuleRepository.searchStandard2(searchword);
+        long searchStandard2time = System.currentTimeMillis();
+        logger.info("searchStandard时间：" + (searchStandard2time - searchStandardtime));
+        List<String> idlist = new ArrayList<>();
+        for (int i = 0; i < objList.size(); i++) {
+            idlist.add(objList.get(i)[6].toString());
+        }
+        for (int i = 0; i < objList2.size(); i++) {
+            String id = objList2.get(i)[6].toString();
+            if (!idlist.contains(id)) {
+                idlist.add(id);
+                objList.add(objList2.get(i));
+            }
+        }
+        resultmap.put("count", objList.size());
+        List<StandardVo> resultlist = new ArrayList<>();
         if (objList.size() > 0) {
             operStandardList = ComUtil.castEntity(objList, StandardVo.class);
+            Collections.sort(operStandardList, new StandardVo());
+            for (int i = startindex; i < startindex + Integer.valueOf(size); i++) {
+                if (operStandardList.size() < i + 1) {
+                    break;
+                }
+                resultlist.add(operStandardList.get(i));
+            }
         }
-        resultmap.put("operStandardList", operStandardList);
+        long getresulttime = System.currentTimeMillis();
+        logger.info("getresulttime时间：" + (getresulttime - searchStandard2time));
+        resultmap.put("operStandardList", resultlist);
+        long allfinish = System.currentTimeMillis();
+        logger.info("all时间：" + (allfinish - allstart));
         return resultmap;
 
     }
@@ -767,155 +841,168 @@ public class SchemaModuleService {
 
     }
 
-    public void importExcel(MultipartFile file) throws Exception {
+    public void importExcel(MultipartFile file) throws CommonException {
         Map<String, Object> moudleIdmap = new HashMap<>();
         Map<String, Object> objectIdmap = new HashMap<>();
         String batchNo = ComUtil.getBatchNo();
         Workbook workbook = null;
-        InputStream is = file.getInputStream();
-        if (file.getOriginalFilename().endsWith("xlsx")) {
-            workbook = new XSSFWorkbook(is);
-        }
-        if (file.getOriginalFilename().endsWith("xls")) {
-            workbook = new HSSFWorkbook(is);
-        }
-        int numberOfSheets = workbook.getNumberOfSheets();
-        for (int i = 0; i < numberOfSheets; i++) {
-            Sheet sheet = workbook.getSheetAt(i);
-            int numberOfRows = sheet.getPhysicalNumberOfRows();
-            switch (i) {
-                case 0:
-                    for (int j = 0; j < numberOfRows; j++) {
-                        if (j == 0) {
-                            continue;//标题行
-                        }
-                        String id = CommonUtil.getUUID();
-                        Row row = sheet.getRow(j);
-                        moudleIdmap.put(row.getCell(0).getStringCellValue(), id);
-                        OperStandard std = new OperStandard();
-                        std.setId(id);
-                        std.setBatchNo(batchNo);
-                        std.setName(row.getCell(0).getStringCellValue());
-                        String ename=tbDictionaryService.getEname(row.getCell(0).getStringCellValue(),"");
-                        std.setEnName(ename);
-                        std.setCode(ename);
+        try {
+            InputStream is = file.getInputStream();
+            if (file.getOriginalFilename().endsWith("xlsx")) {
+                workbook = new XSSFWorkbook(is);
+            }
+            if (file.getOriginalFilename().endsWith("xls")) {
+                workbook = new HSSFWorkbook(is);
+            }
+            int numberOfSheets = workbook.getNumberOfSheets();
+            for (int i = 0; i < numberOfSheets; i++) {
+                Sheet sheet = workbook.getSheetAt(i);
+                int numberOfRows = sheet.getPhysicalNumberOfRows();
+                if (i == 0 && numberOfRows == 1) {
+                    logger.info("第" + (i + 1) + "页没有数据，请检查");
+                    throw new CommonException("第" + (i + 1) + "页没有数据，请检查");
+                }
+                if (numberOfRows == 1) {
+                    logger.info("第" + (i + 1) + "页没有数据，请检查");
+                    throw new CommonException("第" + (i + 1) + "页没有数据，请检查");
+                }
+                switch (i) {
+                    case 0:
+                        for (int j = 0; j < numberOfRows; j++) {
+                            if (j == 0) {
+                                continue;//标题行
+                            }
+                            String id = CommonUtil.getUUID();
+                            Row row = sheet.getRow(j);
+                            moudleIdmap.put(row.getCell(0) != null ? row.getCell(0).getStringCellValue() : "", id);
+                            OperStandard std = new OperStandard();
+                            std.setId(id);
+                            std.setBatchNo(batchNo);
+                            std.setName(row.getCell(0) != null ? row.getCell(0).getStringCellValue() : "");
+                            String ename = tbDictionaryService.getEname(row.getCell(0) != null ? row.getCell(0).getStringCellValue() : "", "");
+                            std.setEnName(ename);
+                            std.setCode(ename);
 //                        std.setEnName(row.getCell(1).getStringCellValue());
 //                        std.setCode(row.getCell(2).getStringCellValue());
 //                        std.setDescription(row.getCell(3).getStringCellValue());
 //                        std.setType(Integer.parseInt(row.getCell(4).getStringCellValue()));
-                        std.setDataSource("file");
-                        std.setVersion("1");
-                        std.setCreatePerson("2001");
-                        std.setDataType(String.valueOf(DataType.ADD.getCode()));
-                        std.setCreateTime(new Date());
-                        std.setIsAuth(String.valueOf(AuthType.DSH.getCode()));
-                        std.setStatus(String.valueOf(Status.JIHUO.getCode()));
-                        std.setCategoryId("0");
-                        operModuleRepository.saveOperMoudle(std);
-                    }
-                    break;
-                case 1:
-                    for (int j = 0; j < numberOfRows; j++) {
-                        if (j == 0) {
-                            continue;//标题行
+                            std.setDataSource("file");
+                            std.setVersion("1");
+                            std.setCreatePerson("2001");
+                            std.setDataType(String.valueOf(DataType.ADD.getCode()));
+                            std.setCreateTime(new Date());
+                            std.setIsAuth(String.valueOf(AuthType.DSH.getCode()));
+                            std.setStatus(String.valueOf(Status.JIHUO.getCode()));
+                            std.setCategoryId("0");
+                            operModuleRepository.saveOperMoudle(std);
                         }
-                        String id = CommonUtil.getUUID();
-                        Row row = sheet.getRow(j);
-                        objectIdmap.put(row.getCell(0).getStringCellValue(), id);
-                        OperStandardObject object = new OperStandardObject();
-                        object.setObjId(id);
-                        object.setBatchNo(batchNo);
-                        object.setVersion("1");
-                        object.setObjCname(row.getCell(0).getStringCellValue());
-                        object.setObjEname(row.getCell(1).getStringCellValue());
-                        object.setShortName(row.getCell(2).getStringCellValue());
-                        object.setObjDefined(row.getCell(3).getStringCellValue());
-                        object.setObjDataType(row.getCell(4).getStringCellValue());
-                        object.setRemark(row.getCell(5).getStringCellValue());
-                        object.setDataType(String.valueOf(DataType.ADD.getCode()));
-                        object.setStatus(String.valueOf(Status.JIHUO.getCode()));
-                        Iterator it = moudleIdmap.entrySet().iterator();
-                        while (it.hasNext()) {
-                            Map.Entry entry = (Map.Entry) it.next();
-                            if (entry.getKey().equals(row.getCell(6).getStringCellValue())) {
-                                object.setMoudleId(entry.getValue().toString());
-                                break;
+                        break;
+                    case 1:
+                        for (int j = 0; j < numberOfRows; j++) {
+                            if (j == 0) {
+                                continue;//标题行
                             }
-                        }
-                        operObjectRepository.saveOperObject(object);
-                    }
-                    break;
-                case 2:
-                    for (int j = 0; j < numberOfRows; j++) {
-                        if (j == 0) {
-                            continue;//标题行
-                        }
-                        String id = CommonUtil.getUUID();
-                        Row row = sheet.getRow(j);
-                        OperStandardField field = new OperStandardField();
-                        field.setId(id);
-                        field.setBatchNo(batchNo);
-                        field.setName(row.getCell(0).getStringCellValue());
-                        field.setEnName(row.getCell(1).getStringCellValue());
-                        field.setCode(row.getCell(2).getStringCellValue());
-                        field.setDefination(row.getCell(3).getStringCellValue());
-                        field.setType(row.getCell(4).getStringCellValue());
-                        field.setMaxsize(Integer.parseInt(row.getCell(5).getStringCellValue()));
-                        field.setRangee(row.getCell(6).getStringCellValue());
-                        field.setRequired(row.getCell(7).getStringCellValue());
-                        field.setComments(row.getCell(8).getStringCellValue());
-                        field.setMaxContains(row.getCell(9).getStringCellValue());
-                        field.setPxh(Integer.parseInt(row.getCell(10).getStringCellValue()));
-                        field.setDataType(String.valueOf(DataType.ADD.getCode()));
-                        field.setCreatePerson(UserContextUtil.getUserName());
-                        field.setCreateTime(new Date());
-                        field.setStatus(String.valueOf(Status.JIHUO.getCode()));
-                        Iterator it = moudleIdmap.entrySet().iterator();
-                        while (it.hasNext()) {
-                            Map.Entry entry = (Map.Entry) it.next();
-                            if (entry.getKey().equals(row.getCell(11).getStringCellValue())) {
-                                field.setMoudleId(entry.getValue().toString());
-                                break;
-                            }
-                        }
-                        if (row.getCell(12) !=null ) {
-                            Iterator it2 = objectIdmap.entrySet().iterator();
-                            while (it2.hasNext()) {
-                                Map.Entry entry = (Map.Entry) it2.next();
-                                if (entry.getKey().equals(row.getCell(12).getStringCellValue())) {
-                                    field.setObjId(entry.getValue().toString());
+                            String id = CommonUtil.getUUID();
+                            Row row = sheet.getRow(j);
+                            objectIdmap.put(row.getCell(0) != null ? row.getCell(0).getStringCellValue() : "", id);
+                            OperStandardObject object = new OperStandardObject();
+                            object.setObjId(id);
+                            object.setBatchNo(batchNo);
+                            object.setVersion("1");
+                            object.setObjCname(row.getCell(0) != null ? row.getCell(0).getStringCellValue() : "");
+                            object.setObjEname(row.getCell(1) != null ? row.getCell(1).getStringCellValue() : "");
+                            object.setShortName(row.getCell(2) != null ? row.getCell(2).getStringCellValue() : "");
+                            object.setObjDefined(row.getCell(3) != null ? row.getCell(3).getStringCellValue() : "");
+                            object.setObjDataType(row.getCell(4) != null ? row.getCell(4).getStringCellValue() : "");
+                            object.setRemark(row.getCell(5) != null ? row.getCell(5).getStringCellValue() : "");
+                            object.setDataType(String.valueOf(DataType.ADD.getCode()));
+                            object.setStatus(String.valueOf(Status.JIHUO.getCode()));
+                            Iterator it = moudleIdmap.entrySet().iterator();
+                            while (it.hasNext()) {
+                                Map.Entry entry = (Map.Entry) it.next();
+                                if (entry.getKey().equals(row.getCell(6) != null ? row.getCell(6).getStringCellValue() : "")) {
+                                    object.setMoudleId(entry.getValue().toString());
                                     break;
                                 }
                             }
+                            operObjectRepository.saveOperObject(object);
                         }
-                        operFieldRepository.saveOperFeild(field);
-                    }
-                    break;
-                default:
-                    break;
+                        break;
+                    case 2:
+                        for (int j = 0; j < numberOfRows; j++) {
+                            if (j == 0) {
+                                continue;//标题行
+                            }
+                            String id = CommonUtil.getUUID();
+                            Row row = sheet.getRow(j);
+                            OperStandardField field = new OperStandardField();
+                            field.setId(id);
+                            field.setBatchNo(batchNo);
+                            field.setName(row.getCell(0) != null ? row.getCell(0).getStringCellValue() : "");
+                            field.setEnName(row.getCell(1) != null ? row.getCell(1).getStringCellValue() : "");
+                            field.setCode(row.getCell(2) != null ? row.getCell(2).getStringCellValue() : "");
+                            field.setDefination(row.getCell(3) != null ? row.getCell(3).getStringCellValue() : "");
+                            field.setType(row.getCell(4) != null ? row.getCell(4).getStringCellValue() : "");
+                            field.setMaxsize(Integer.parseInt(row.getCell(5) != null ? row.getCell(5).getStringCellValue() : "0"));
+                            field.setRangee(row.getCell(6) != null ? row.getCell(6).getStringCellValue() : "");
+                            field.setRequired(row.getCell(7) != null ? row.getCell(7).getStringCellValue() : "");
+                            field.setComments(row.getCell(8) != null ? row.getCell(8).getStringCellValue() : "");
+                            field.setMaxContains(row.getCell(9) != null ? row.getCell(9).getStringCellValue() : "");
+                            field.setPxh(Integer.parseInt(row.getCell(10) != null ? row.getCell(10).getStringCellValue() : "0"));
+                            field.setDataType(String.valueOf(DataType.ADD.getCode()));
+                            field.setCreatePerson(UserContextUtil.getUserName());
+                            field.setCreateTime(new Date());
+                            field.setStatus(String.valueOf(Status.JIHUO.getCode()));
+                            Iterator it = moudleIdmap.entrySet().iterator();
+                            while (it.hasNext()) {
+                                Map.Entry entry = (Map.Entry) it.next();
+                                if (entry.getKey().equals(row.getCell(11) != null ? row.getCell(11).getStringCellValue() : "")) {
+                                    field.setMoudleId(entry.getValue().toString());
+                                    break;
+                                }
+                            }
+                            if (row.getCell(12) != null) {
+                                Iterator it2 = objectIdmap.entrySet().iterator();
+                                while (it2.hasNext()) {
+                                    Map.Entry entry = (Map.Entry) it2.next();
+                                    if (entry.getKey().equals(row.getCell(12) != null ? row.getCell(12).getStringCellValue() : "")) {
+                                        field.setObjId(entry.getValue().toString());
+                                        break;
+                                    }
+                                }
+                            }
+                            operFieldRepository.saveOperFeild(field);
+                        }
+                        break;
+                    default:
+                        break;
+                }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new CommonException("导入excel失败");
         }
     }
 
     public void exportToExcel(HttpServletResponse response) throws Exception {
-            List<Standard> stdList = schemaModuleRepository.getAllStandardInfo();
-            List<StandardField> fieldList = schemaFieldRepository.getAllField();
-            List<StandardObject> objList = objectRepository.getAllObject();
-            //实例化HSSFWorkbook
-            HSSFWorkbook workbook = new HSSFWorkbook();
-            stdSheet(stdList, workbook);
-            fieldSheet(fieldList, workbook);
-            getObjSheet(objList, workbook);
-            //清空response
-            response.reset();
-            //设置response的Header
-            response.addHeader("Content-Disposition", "attachment;filename=" + "test.xls");
-            OutputStream os = new BufferedOutputStream(response.getOutputStream());
-            response.setContentType("application/vnd.ms-excel;charset=gb2312");
-            //将excel写入到输出流中
-            workbook.write(os);
-            os.flush();
-            os.close();
+        List<Standard> stdList = schemaModuleRepository.getAllStandardInfo();
+        List<StandardField> fieldList = schemaFieldRepository.getAllField();
+        List<StandardObject> objList = objectRepository.getAllObject();
+        //实例化HSSFWorkbook
+        HSSFWorkbook workbook = new HSSFWorkbook();
+        stdSheet(stdList, workbook);
+        fieldSheet(fieldList, workbook);
+        getObjSheet(objList, workbook);
+        //清空response
+        response.reset();
+        //设置response的Header
+        response.addHeader("Content-Disposition", "attachment;filename=" + "test.xls");
+        OutputStream os = new BufferedOutputStream(response.getOutputStream());
+        response.setContentType("application/vnd.ms-excel;charset=gb2312");
+        //将excel写入到输出流中
+        workbook.write(os);
+        os.flush();
+        os.close();
     }
 
     private void getObjSheet(List<StandardObject> objList, HSSFWorkbook workbook) {
@@ -1006,9 +1093,9 @@ public class SchemaModuleService {
             row.createCell(rowNum++).setCellValue(stdList.get(i).getCode());
             row.createCell(rowNum++).setCellValue(stdList.get(i).getDescription());
             row.createCell(rowNum++).setCellValue(stdList.get(i).getDataSource());
-            if(stdList.get(i).getType() != null){
+            if (stdList.get(i).getType() != null) {
                 row.createCell(rowNum++).setCellValue(stdList.get(i).getType());
-            }else{
+            } else {
                 row.createCell(rowNum++).setCellValue(-1);
             }
 
@@ -1024,6 +1111,7 @@ public class SchemaModuleService {
 
     /**
      * 根据目录id获取码表信息
+     *
      * @param categoryId
      * @return
      * @throws Exception
@@ -1065,10 +1153,8 @@ public class SchemaModuleService {
 
         return resultCodeInfo;
     }*/
-
-
     public Set<CodeInfo> getCodeTableByCategoryId(String categoryId) throws Exception {
-       // List<CodeInfo> resultCodeInfo = new ArrayList<>();
+        // List<CodeInfo> resultCodeInfo = new ArrayList<>();
         Set<CodeInfo> resultCodeInfo = new HashSet<>();
         //如果根目录（categoryId = 0），就把categoryId =“”
         if (StringUtils.isEmpty(categoryId)) {
@@ -1078,7 +1164,7 @@ public class SchemaModuleService {
         //获取当前目录下的的所有子目录
         List<String> childCategoryIdList = new ArrayList<>();
         childCategoryIdList.add(categoryId);
-        getCategoryChild(categoryId,childCategoryIdList);
+        getCategoryChild(categoryId, childCategoryIdList);
 
         for (int j = 0; j < childCategoryIdList.size(); j++) {
             String tmpCategoryId = childCategoryIdList.get(j);
@@ -1086,7 +1172,7 @@ public class SchemaModuleService {
             for (int i = 0; i < fieldIdList.size(); i++) {
                 String fieldId = fieldIdList.get(i);
                 String codeInfoName = fieldCodeRepository.getCodeTableByFeildId(fieldId);
-                if(!StringUtils.isEmpty(codeInfoName)){
+                if (!StringUtils.isEmpty(codeInfoName)) {
                     List<CodeInfo> codeInfoList = codeInfoRepository.getCodeInfoByName(codeInfoName);
                     resultCodeInfo.addAll(codeInfoList);
                 }
@@ -1096,8 +1182,8 @@ public class SchemaModuleService {
         return resultCodeInfo;
     }
 
-
-
-
+    public static void main(String[] args) {
+        System.out.println(new Date());
+    }
 
 }

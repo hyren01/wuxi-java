@@ -47,6 +47,7 @@ public class StdModelService {
 		for (OperDocStdModel std:liststd) {
 			modelObjRepository.save(std.getObjfields());
 			modelfieldrepository.save(std.getFields());
+
 		}
 
 		for(int i=0;i<listcodeinfo.size();i++){

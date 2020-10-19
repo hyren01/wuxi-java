@@ -39,7 +39,7 @@ import net.sf.json.JSONObject;
  *
  */
 @Controller
-@RequestMapping("/verify")
+@RequestMapping("stdglprj/verify")
 public class VerifyController{
 	
 	@Autowired

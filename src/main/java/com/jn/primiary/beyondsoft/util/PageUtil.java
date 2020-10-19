@@ -14,6 +14,9 @@ public class PageUtil {
      */
     public static List doPage(List list, Integer pageNum,
                                  Integer pageSize) {
+        if(pageSize <0){
+            pageSize = Integer.MAX_VALUE;
+        }
         if (list == null) {
             return null;
         }

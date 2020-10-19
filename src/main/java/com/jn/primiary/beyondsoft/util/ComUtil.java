@@ -32,6 +32,12 @@ public class ComUtil {
 			}
 		}
 		for (Object[] o : list) {
+//			Constructor<T> constructor = clazz.getConstructor(c2);
+//			Class<?>[] parameterTypes = constructor.getParameterTypes();
+//			System.out.println("o.length"+o.length+",parameterTypes.length:"+parameterTypes.length);
+//			for(Class<?> everypara : parameterTypes){
+//				System.out.println(everypara);
+//			}
 			Constructor<T> constructor = clazz.getConstructor(c2);
 			returnList.add(constructor.newInstance(o));
 		}

@@ -116,8 +116,8 @@ public class OfficeTextParserSJB {
 					newmodel.setBatch_no(batch_no);
 					newmodel.setDatasource("file");
 					newmodel.setCode(std_code);
-					newmodel.setEname(std_ename);
-					newmodel.setCname(std_cname); //中文名
+					newmodel.setEname(StringUtils.formateFieldCode(std_ename));
+					newmodel.setCname(StringUtils.formateFieldCode(std_cname)); //中文名
 					newmodel.setAuth_status(AuthType.DSQ.getCode());
 					newmodel.setCreate_time(new Date());
 					newmodel.setStatus(Status.JIHUO.getCode());
@@ -160,7 +160,14 @@ public class OfficeTextParserSJB {
 				logger.info("错误信息："+e.getMessage());
 			}
 		}
-
+		for (OperDocStdModel model : listModel) {
+			List<OperDocStdModelField> fields = model.getFields();
+			for(OperDocStdModelField everyfield : fields){
+				everyfield.setCname(StringUtils.formateFieldCode(everyfield.getCname()));
+				everyfield.setEname(StringUtils.formateFieldCode(everyfield.getEname()));
+				everyfield.setCode(StringUtils.formateFieldCode(everyfield.getCode()));
+			}
+		}
 		resultobj.put("std_list",listModel);
 		resultobj.put("code_list",listCodeInfo);
 		logger.info("一共解析出标准:"+listModel.size()+"个，field:"+fieldcount+"条");
@@ -311,15 +318,15 @@ public class OfficeTextParserSJB {
 		OperDocStdModelField field=new OperDocStdModelField();
 		//中文名
 		strtemp=row.getCell(cname).getText().trim();;
-		field.setCname(strtemp);
+		field.setCname(StringUtils.formateFieldCode(strtemp));
 
 		//英文名
 		strtemp = row.getCell(ename).getText().trim();
-		field.setEname(strtemp);
+		field.setEname(StringUtils.formateFieldCode(strtemp));
 
 		//短名
 		strtemp = field.getEname();
-		field.setCode(strtemp);
+		field.setCode(StringUtils.formateFieldCode(strtemp));
 
 		//定义
 		strtemp=row.getCell(defination).getText().trim();

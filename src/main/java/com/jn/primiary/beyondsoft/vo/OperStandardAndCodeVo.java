@@ -16,7 +16,7 @@ public class OperStandardAndCodeVo {
     private String categoryId;//挂载目录ID
     private String db_id;
     private String version;//	版本
-    private Integer type;//	41表示该条信息是标准信息
+    private String type;//	41表示该条信息是标准信息
     private String updatePerson;//	更新人
     private String description;//	标准描述s
     //    private String dataSource;//	数据源
@@ -82,11 +82,11 @@ public class OperStandardAndCodeVo {
         this.name = name;
     }
 
-    public Integer getType() {
+    public String getType() {
         return type;
     }
 
-    public void setType(Integer type) {
+    public void setType(String type) {
         this.type = type;
     }
 

@@ -20,6 +20,10 @@ public interface ModuleRepository extends JpaRepository <Standard,Integer> {
 			"date_format(a.update_time,'%Y-%m-%d %h:%m:%s') as updateTime,a.* from tb_stdgl_schemamodule a where IF(?2 !='',version=?2 and status='2',status='1') and id=?1 " ,nativeQuery = true)
 	Standard getStandardById(String stdId, String version);
 
+	@Query(value ="select date_format(a.createtime,'%Y-%m-%d %h:%m:%s') as createTime," +
+			"date_format(a.update_time,'%Y-%m-%d %h:%m:%s') as updateTime,a.* from tb_stdgl_schemamodule a where status='1' and id=?1 " ,nativeQuery = true)
+	Standard getStandardById(String stdId);
+
 	@Modifying
 	@Query(value = "update tb_stdgl_schemamodule " +
 			"set status='2'" +

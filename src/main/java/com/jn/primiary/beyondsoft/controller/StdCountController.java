@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Controller
-@RequestMapping(value = "/stdcount")
+@RequestMapping("stdglprj/stdcount")
 public class StdCountController{
     @Autowired
     private StdCountService stdCountService;

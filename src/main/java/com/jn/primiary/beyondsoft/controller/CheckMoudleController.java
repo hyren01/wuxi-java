@@ -1,11 +1,16 @@
 package com.jn.primiary.beyondsoft.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.jn.primiary.beyondsoft.entity.*;
 import com.jn.primiary.beyondsoft.service.CheckMoudleService;
 import com.jn.primiary.beyondsoft.util.UserContextUtil;
-import com.jn.primiary.beyondsoft.vo.*;
+import com.jn.primiary.beyondsoft.vo.CheckMoudleListVo;
+import com.jn.primiary.beyondsoft.vo.DataCheckResultVo;
+import com.jn.primiary.beyondsoft.vo.FieldCheckResultVo;
+import com.jn.primiary.beyondsoft.vo.MoudleListVo;
 import com.jn.primiary.metadata.entity.BaseResponse;
 import com.jn.primiary.metadata.entity.ResultCode;
 import com.jn.primiary.metadata.utils.StringUtils;
@@ -16,11 +21,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.Pattern;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -30,8 +31,8 @@ import java.util.Map;
  */
 @Validated
 @Controller
-@RequestMapping("/checkmoudle")
-public class CheckMoudleController{
+@RequestMapping("stdglprj/checkmoudle")
+public class CheckMoudleController {
 
     @Autowired
     CheckMoudleService checkService;
@@ -49,8 +50,8 @@ public class CheckMoudleController{
 
     //安全字段
     String[] requireModuleFieldArray = {"mdSecDeg", "fileSecDeg", "unitID", "siteID", "means",
-            "line", "eqpID","direction", "speciality","mission",
-            "domain", "tarTyp","truOrFal", "secDegProl"};
+            "line", "eqpID", "direction", "speciality", "mission",
+            "domain", "tarTyp", "truOrFal", "secDegProl"};
 
     /**
      * 标准检测
@@ -62,22 +63,21 @@ public class CheckMoudleController{
      */
     @ResponseBody
     @RequestMapping(value = "/contrastbyModel", method = RequestMethod.POST)
-    public BaseResponse<FieldCheckResult> contrastbyModel(@Pattern(regexp = "^\\w+$",message = "请输入正确的moudleId") @RequestParam String moudleId,
+    public BaseResponse contrastbyModel(@Pattern(regexp = "^\\w+$", message = "请输入正确的moudleId") @RequestParam String moudleId,
                                                           @RequestParam String objId,
                                                           @RequestBody Model model) throws Exception {
-        BaseResponse<FieldCheckResult> response = new BaseResponse<FieldCheckResult>();
+        BaseResponse response = new BaseResponse<FieldCheckResult>();
         if (StringUtils.isEmpty(moudleId)) throw new Exception("标准ID不能为空");
-
         List<FieldCheckResult> listresult = checkService.contraststdbyModel(model, moudleId, objId);
-
         response.setResultCode(ResultCode.RESULT_SUCCESS);
         response.setData(listresult);
         response.setMessage("对比标准结果成功");
         return response;
     }
 
+
+
     /**
-     *
      * @param moudleId
      * @param model
      * @return
@@ -86,7 +86,7 @@ public class CheckMoudleController{
     @ResponseBody
     @RequestMapping(value = "/contrastbyField", method = RequestMethod.POST)
     public BaseResponse<FieldCheckResultVo> contrastbyField(@RequestParam String moudleId,
-                                                          @RequestBody Model model) throws Exception {
+                                                            @RequestBody Model model) throws Exception {
         BaseResponse<FieldCheckResultVo> response = new BaseResponse<FieldCheckResultVo>();
         if (StringUtils.isEmpty(moudleId)) throw new CommonException("标准ID不能为空");
         //测试用
@@ -100,6 +100,7 @@ public class CheckMoudleController{
 
     /**
      * 检测安全字段
+     *
      * @param model
      * @return
      * @throws Exception
@@ -122,6 +123,7 @@ public class CheckMoudleController{
 
     /**
      * 一键检测
+     *
      * @param model_id
      * @return
      */
@@ -130,12 +132,12 @@ public class CheckMoudleController{
     public BaseResponse<FieldCheckResult> oneClickDetection(@RequestParam String model_id) {
         BaseResponse<FieldCheckResult> response = new BaseResponse<FieldCheckResult>();
         try {
-            if(StringUtils.isEmpty(getAllRegisteredModels_url) && StringUtils.isEmpty(getModelInfo_url)){
+            if (StringUtils.isEmpty(getAllRegisteredModels_url) && StringUtils.isEmpty(getModelInfo_url)) {
                 //本地测试用
                 checkService.oneClickDetection(model_id, UserContextUtil.getUserName());
-            }else{
+            } else {
                 //联调时候用
-                checkService.oneClickDetection(model_id,UserContextUtil.getUserName(),getModelInfo_url);
+                checkService.oneClickDetection(model_id, UserContextUtil.getUserName(), getModelInfo_url);
             }
 
             response.setResultCode(ResultCode.RESULT_SUCCESS);
@@ -152,6 +154,7 @@ public class CheckMoudleController{
 
     /**
      * 保存检测结果
+     *
      * @return
      */
     @ResponseBody
@@ -164,7 +167,7 @@ public class CheckMoudleController{
         List<FieldCheckResult> listresult = paramObj.getJSONArray("tosave").toJavaList(FieldCheckResult.class);
 
         BaseResponse<String> response = new BaseResponse<String>();
-        checkService.saveCheckResult(listresult,UserContextUtil.getUserName(),std_id,version,model_id,obj_id);
+        checkService.saveCheckResult(listresult, UserContextUtil.getUserName(), std_id, version, model_id, obj_id);
         response.setResultCode(ResultCode.RESULT_SUCCESS);
         response.setMessage("存储核标结果数据成功");
         return response;
@@ -181,10 +184,10 @@ public class CheckMoudleController{
     public BaseResponse<MoudleListVo> getMoudleList() throws Exception {
         BaseResponse<MoudleListVo> response = new BaseResponse<MoudleListVo>();
         List<MoudleListVo> moudleList = null;
-        if(StringUtils.isEmpty(getAllRegisteredModels_url)){
+        if (StringUtils.isEmpty(getAllRegisteredModels_url)) {
             //本地的模型库，测试用
             moudleList = checkService.getMoudleList();
-        }else{
+        } else {
             //正式联调
             moudleList = checkService.getMoudleList(getAllRegisteredModels_url);
         }
@@ -196,6 +199,7 @@ public class CheckMoudleController{
 
     /**
      * 获取模型列表字段信息（正式联调的时候放开）
+     *
      * @return
      * @throws Exception
      */
@@ -204,11 +208,11 @@ public class CheckMoudleController{
     public BaseResponse<ModelField> getMoudleField(@RequestParam(value = "moudleId") String moudleId) throws Exception {
         BaseResponse<ModelField> response = new BaseResponse<ModelField>();
         List<ModelField> fieldlist = null;
-        if(StringUtils.isEmpty(getModelInfo_url)){
+        if (StringUtils.isEmpty(getModelInfo_url)) {
             //本地测试用
             fieldlist = checkService.getMoudleField(moudleId);
-        }else{
-            fieldlist = checkService.getMoudleField(moudleId,getModelInfo_url);
+        } else {
+            fieldlist = checkService.getMoudleField(moudleId, getModelInfo_url);
         }
 
         response.setResultCode(ResultCode.RESULT_SUCCESS);
@@ -228,13 +232,13 @@ public class CheckMoudleController{
     public BaseResponse<CheckMoudleListVo> getCheckMoudleList(@RequestParam String moudleId) throws Exception {
         BaseResponse<CheckMoudleListVo> response = new BaseResponse<CheckMoudleListVo>();
         List<CheckMoudleListVo> moudleList = null;
-        if(StringUtils.isEmpty(getAllRegisteredModels_url) && StringUtils.isEmpty(getModelInfo_url)){
+        if (StringUtils.isEmpty(getAllRegisteredModels_url) && StringUtils.isEmpty(getModelInfo_url)) {
             //测试用
             moudleList = checkService.getCheckMoudleList(moudleId);
-        }else{
+        } else {
             //正式联调的时候放开
-            String url = getModelInfo_url+moudleId;
-            moudleList = checkService.getCheckMoudleList(moudleId,url);
+            String url = getModelInfo_url + moudleId;
+            moudleList = checkService.getCheckMoudleList(moudleId, url);
         }
 
         response.setResultCode(ResultCode.RESULT_SUCCESS);
@@ -242,9 +246,9 @@ public class CheckMoudleController{
         response.setMessage("获取数据成功");
         return response;
     }
+
     /**
      * add by wld 2020.04.10
-     *
      *
      * @return
      * @throws Exception
@@ -266,7 +270,6 @@ public class CheckMoudleController{
     /**
      * add by wld 2020.04.18
      *
-     *
      * @return
      * @throws Exception
      */
@@ -286,7 +289,6 @@ public class CheckMoudleController{
     /**
      * add by mqy 2020.04.13
      *
-     *
      * @return
      * @throws Exception
      */
@@ -294,7 +296,7 @@ public class CheckMoudleController{
     @RequestMapping(value = "/getallmodelinfobystdpro", method = RequestMethod.GET)
     public BaseResponse<StdCheckModelEntity> getallmodelInfobytdpro() throws Exception {
         BaseResponse<StdCheckModelEntity> response = new BaseResponse<StdCheckModelEntity>();
-        List<String> liststd=checkService.getMoudleFieldList();
+        List<String> liststd = checkService.getMoudleFieldList();
         List<StdCheckModelEntity> listreult = checkService.getallmodelInfobytdpro(liststd);
 
 //        for(int i=0;i<listreult.size();i++){
@@ -302,9 +304,9 @@ public class CheckMoudleController{
 //                listreult2.add(listreult.get(i));
 //            }
 //        }
-        Set<StdCheckModelEntity> setdata=new HashSet<StdCheckModelEntity>();
+        Set<StdCheckModelEntity> setdata = new HashSet<StdCheckModelEntity>();
         setdata.addAll(listreult);
-        List<StdCheckModelEntity> listreult2=new ArrayList<StdCheckModelEntity>(setdata);
+        List<StdCheckModelEntity> listreult2 = new ArrayList<StdCheckModelEntity>(setdata);
         response.setResultCode(ResultCode.RESULT_SUCCESS);
         response.setData(listreult2);
         response.setMessage("获取数据成功");
@@ -314,6 +316,7 @@ public class CheckMoudleController{
     /**
      * add by wld 2020.04.16 增加根据配置对所有的模型进行标准检测的功能
      * 需要先将所有的模型与字段导入标准数据库
+     *
      * @return
      * @throws Exception
      */
@@ -324,7 +327,6 @@ public class CheckMoudleController{
 
 
         checkService.checkAllModel();
-
 
 
         response.setResultCode(ResultCode.RESULT_SUCCESS);
@@ -351,14 +353,13 @@ public class CheckMoudleController{
 //        response.setMessage("获取数据成功");
 //        return response;
 //    }
-
     @ResponseBody
     @RequestMapping(value = "/getDbList", method = RequestMethod.POST)
-    public BaseResponse<SysDb> getDbList(@RequestBody Map<String,Object> map) throws Exception {
+    public BaseResponse<SysDb> getDbList(@RequestBody Map<String, Object> map) throws Exception {
         BaseResponse<SysDb> response = new BaseResponse<SysDb>();
         String str = JSONObject.toJSONString(map);
-        String moudleId = (String)map.get("moudleId");
-        List<SysDb> dbList = checkService.getDbList(getModuleDBbyMoudleId_url,getDataSourceById_url,moudleId);
+        String moudleId = (String) map.get("moudleId");
+        List<SysDb> dbList = checkService.getDbList(getModuleDBbyMoudleId_url, getDataSourceById_url, moudleId);
 
         response.setResultCode(ResultCode.RESULT_SUCCESS);
         response.setData(dbList);
@@ -369,10 +370,10 @@ public class CheckMoudleController{
 
     @ResponseBody
     @RequestMapping(value = "/getDataCheck", method = RequestMethod.POST)
-    public BaseResponse<DataCheckResultVo> getDataCheck(@RequestBody Map<String,Object> map) throws Exception {
+    public BaseResponse<DataCheckResultVo> getDataCheck(@RequestBody Map<String, Object> map) throws Exception {
         BaseResponse<DataCheckResultVo> response = new BaseResponse<DataCheckResultVo>();
         //List<SysDb> dbList = checkService.getDbList();
-        List<DataCheckResultVo> result=checkService.doCheckData(map);
+        List<DataCheckResultVo> result = checkService.doCheckData(map);
         response.setResultCode(ResultCode.RESULT_SUCCESS);
         response.setData(result);
         response.setMessage("获取数据成功");
@@ -381,17 +382,18 @@ public class CheckMoudleController{
 
     /**
      * #模型列表 获取表所在 库的信息
+     *
      * @param map
      * @return
      */
     @ResponseBody
     @RequestMapping(value = "/getMoudleTableDataSource", method = RequestMethod.POST)
-    public BaseResponse<JSONArray> getMoudleTableDataSource(@RequestBody Map<String,Object> map) throws Exception {
+    public BaseResponse<JSONArray> getMoudleTableDataSource(@RequestBody Map<String, Object> map) throws Exception {
         BaseResponse<JSONArray> response = new BaseResponse<JSONArray>();
 
         //String schemaCode = (String) map.get("schemaCode");
         String str = JSONObject.toJSONString(map);
-        checkService.getMoudleTableDataSource(getModuleDBbyMoudleId_url,str);
+        checkService.getMoudleTableDataSource(getModuleDBbyMoudleId_url, str);
 
         return response;
     }

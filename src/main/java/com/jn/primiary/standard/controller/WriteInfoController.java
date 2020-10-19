@@ -18,7 +18,7 @@ import com.jn.primiary.standard.service.WriteInfoService;
  * @Date 2019-07-22 
  */
 @Controller
-@RequestMapping("/writeinfo")
+@RequestMapping("stdglprj/writeinfo")
 public class WriteInfoController {
 	
 	

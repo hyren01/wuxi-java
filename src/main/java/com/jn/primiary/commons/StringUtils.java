@@ -229,12 +229,14 @@ public class StringUtils {
 	 */
 	public static String formateFieldCode(String str){
 		String strtemp = str;
-		strtemp=strtemp.replace("\r", "");
-		strtemp=strtemp.replace("\n", "");
-		strtemp=strtemp.replace(" ", "");
-		strtemp=strtemp.replace("/", "");
-		strtemp=strtemp.replace("\\", "");
-		strtemp=strtemp.replaceAll("\t", "");
+		strtemp = org.apache.commons.lang.StringUtils.replace(strtemp, "\r", "");
+		strtemp = org.apache.commons.lang.StringUtils.replace(strtemp, "\n", "");
+		strtemp = org.apache.commons.lang.StringUtils.replace(strtemp, " ", "");
+		strtemp = org.apache.commons.lang.StringUtils.replace(strtemp, "/", "");
+		strtemp = org.apache.commons.lang.StringUtils.replace(strtemp, "\\", "");
+		strtemp = org.apache.commons.lang.StringUtils.replace(strtemp, "\t", "");
+		strtemp = strtemp.replace("\r\n","");
+//
 		return strtemp;
 	}
 	

@@ -31,7 +31,7 @@ import com.jn.primiary.commons.CommonUtil;
  * 
  */
 @Controller
-@RequestMapping("/stdgl/")
+@RequestMapping("stdglprj/stdgl")
 public class StdglSchemaService {
 	
 	

@@ -1,11 +1,18 @@
 package com.jn.primiary.beyondsoft.vo;
 
+import com.jn.primiary.beyondsoft.entity.Standard;
+import com.jn.primiary.commons.StringUtils;
+
+import java.text.SimpleDateFormat;
+import java.util.Comparator;
+import java.util.Date;
+
 /**
  * @Des 审核列表VO
  * @Author chenhong
  * @Date 2019/9/28 16:46
  */
-public class StandardVo {
+public class StandardVo implements Comparator<StandardVo> {
 
     private String code;
     private String name;
@@ -136,8 +143,31 @@ public class StandardVo {
         this.categoryId = categoryId;
     }
 
+
     public StandardVo() {
         super();
+    }
+
+    @Override
+    public int compare(StandardVo o1, StandardVo o2) {
+        long result = 0L;
+        String o1time = StringUtils.isBlank(o1.getUpdateTime()) ? o1.getCreateTime() : o1.getUpdateTime();
+        String o2time = StringUtils.isBlank(o2.getUpdateTime()) ? o2.getCreateTime() : o2.getUpdateTime();
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+            Date d1 = sdf.parse(o1time);
+            Date d2 = sdf.parse(o2time);
+            result = d2.getTime() - d1.getTime();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (result > 0) {
+            return 1;
+        } else if (result == 0) {
+            return 0;
+        } else {
+            return -1;
+        }
     }
 }
 

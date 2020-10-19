@@ -19,7 +19,7 @@ import com.jn.primiary.metadata.entity.ResultCode;
 import com.jn.primiary.metadata.entity.UserInfo;
 
 @RestController
-@RequestMapping("/dataCheck")
+@RequestMapping("stdglprj/dataCheck")
 public class DataCheckController {
 
 	@Autowired

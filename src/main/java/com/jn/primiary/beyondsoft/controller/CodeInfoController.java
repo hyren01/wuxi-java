@@ -26,7 +26,7 @@ import java.util.Map;
  */
 @Validated
 @Controller
-@RequestMapping("/codeinfo")
+@RequestMapping("stdglprj/codeinfo")
 public class CodeInfoController {
 
 
@@ -57,7 +57,7 @@ public class CodeInfoController {
      */
     @RequestMapping(value = "/getCodeInfoListByPage", method = RequestMethod.POST)
     @ResponseBody
-    public Map<String, Object> getCodeInfoListByPage(@RequestBody Map<String,String> map) {
+    public Map<String, Object> getCodeInfoListByPage(@RequestBody Map<String,String> map) throws Exception {
         Map<String, Object> resultmap = codeInfoService.getAllCodeInfoByPage(map);
         resultmap.put("resultcode",ResultCode.RESULT_SUCCESS);
         resultmap.put("message","获取信息成功");
@@ -83,7 +83,7 @@ public class CodeInfoController {
             List<CodeInfo> codeInfo = codeInfoService.codeInfoIsExists(fieldCodeVo.getCodeInfoList());
             if (codeInfo.size() != 0) {
                 response.setResultCode(ResultCode.RESULT_ERROR);
-                response.setMessage("码表已存在");
+                response.setMessage("码表英文名重复，请重新填写");
                 return response;
             }
         }

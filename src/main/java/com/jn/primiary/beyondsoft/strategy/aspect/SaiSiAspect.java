@@ -10,8 +10,10 @@ import org.aspectj.lang.ProceedingJoinPoint;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
+import java.util.List;
 
-    public class SaiSiAspect extends AbstracyAspectStrategy {
+public class SaiSiAspect extends AbstracyAspectStrategy {
         private Logger logger = Logger.getLogger(SaiSiAspect.class);
 
         public SaiSiAspect(String tokenAspectType, HttpServletRequest request, ProceedingJoinPoint point, HttpSession session) {
@@ -25,6 +27,7 @@ import javax.servlet.http.HttpSession;
     /* 定义一个线程域，存放登录的对象 */
     private static final ThreadLocal<SysUser> t1 = new ThreadLocal<>();
     private String KEYWORD_TOKEN = "scistor-token";
+
 
     @Override
     public Object aspectFunction() throws Throwable {

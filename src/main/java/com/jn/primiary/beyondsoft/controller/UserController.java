@@ -31,7 +31,7 @@ import java.util.Map;
 @Controller
 @RequestMapping(value = "/sysuser")
 @Api(value = "用户登录api")
-public class UserController{
+public class UserController {
     @Value("${spring.profiles.active}")
     private String tokenAspectType;
 
@@ -48,6 +48,7 @@ public class UserController{
 
     /**
      * 登录获取token
+     *
      * @param
      * @param
      * @return
@@ -95,34 +96,32 @@ public class UserController{
 
         return response;
     }*/
-
-
     @ResponseBody
-    @RequestMapping(value = "/login",method = RequestMethod.POST)
+    @RequestMapping(value = "/login", method = RequestMethod.POST)
     public BaseResponse<JSONObject> login(HttpServletRequest request, HttpServletResponse httpServletResponse) throws Exception {
         BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
         JSONObject resultObj = new JSONObject();
-        resultObj.put("loginType",tokenAspectType);
-        if("pro".equals(tokenAspectType)){
+        resultObj.put("loginType", tokenAspectType);
+        if ("pro".equals(tokenAspectType)) {
             String username = request.getParameter("username");
             String password = request.getParameter("password");
             if (StringUtils.isEmpty(username)) throw new CommonException("请传入用户名");
             if (StringUtils.isEmpty(password)) throw new CommonException("请传入密码");
 
-            JSONObject obj  = new JSONObject();
-                obj.put("account",username);
-                obj.put("password", DigestUtils.md5DigestAsHex(password.getBytes()));//密码用md5加密
-                obj.put("showAppInfo","true");
-                obj.put("syscode","'stdcode'");
-            String result = httpClientUtil.postWithJson(cmsLoginUrl,obj.toString());
+            JSONObject obj = new JSONObject();
+            obj.put("account", username);
+            obj.put("password", DigestUtils.md5DigestAsHex(password.getBytes()));//密码用md5加密
+            obj.put("showAppInfo", "true");
+            obj.put("syscode", "'stdcode'");
+            String result = httpClientUtil.postWithJson(cmsLoginUrl, obj.toString());
             JSONObject scistorObj = JSONObject.parseObject(result);
-            resultObj.put("data",scistorObj);
+            resultObj.put("data", scistorObj);
 
             response.setOtherData(resultObj);
             response.setMessage(scistorObj.getJSONObject("data").getString("tokenInfo"));
             response.setResultCode(ResultCode.RESULT_SUCCESS);
-        }else if("ukey".equals(tokenAspectType)){
-           // String result = httpClientUtil.get(trx_gettoken_url);
+        } else if ("ukey".equals(tokenAspectType)) {
+            // String result = httpClientUtil.get(trx_gettoken_url);
             String token = request.getParameter("token");
             String appId = request.getParameter("appId");
             if (StringUtils.isEmpty(appId)) throw new CommonException("请传入AppId");
@@ -132,31 +131,31 @@ public class UserController{
             SysUser user = ukeyTokenUtil.validateLoginByCas(token, appId, request);
             //List<SysUser> list = new ArrayList<>();
             //list.add(user);
-            resultObj.put("data",user);
+            resultObj.put("data", user);
 
             response.setOtherData(resultObj);
             response.setMessage(token);
             response.setResultCode(ResultCode.RESULT_SUCCESS);
 
-        }else{
+        } else {
             //dev
             String username = request.getParameter("username");
             String password = request.getParameter("password");
             if (StringUtils.isEmpty(username)) throw new CommonException("请传入用户名");
             if (StringUtils.isEmpty(password)) throw new CommonException("请传入密码");
             SysUser user = service.login(username);
-            if(password.equals(user.getPassword())){
-                Map<String,Object> map = new HashMap<>();
-                map.put("password",password);
+            if (password.equals(user.getPassword())) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("password", password);
 
                 SysUser userrole = service.findbyid(user.getId());
-               // List<SysUser> list = new ArrayList<>();
-               // list.add(userrole);
-                resultObj.put("data",userrole);
+                // List<SysUser> list = new ArrayList<>();
+                // list.add(userrole);
+                resultObj.put("data", userrole);
                 response.setOtherData(resultObj);
                 response.setMessage("test_token");
                 response.setResultCode(ResultCode.RESULT_SUCCESS);
-            }else{
+            } else {
                 throw new CommonException("登录失败，请检查用户名密码！");
             }
 /*
@@ -167,5 +166,29 @@ public class UserController{
 
         return response;
     }
+
+
+    @ResponseBody
+    @RequestMapping(value = "/cmslogin", method = RequestMethod.POST)
+    public BaseResponse<JSONObject> cmslogin(HttpServletRequest request, HttpServletResponse httpServletResponse) throws Exception {
+        BaseResponse<JSONObject> response = new BaseResponse<JSONObject>();
+        JSONObject resultObj = new JSONObject();
+        String token = request.getParameter("tokenid");
+        String syscode = request.getParameter("syscode");
+        if (StringUtils.isEmpty(syscode)) throw new CommonException("请传入syscode");
+        if (StringUtils.isEmpty(token)) throw new CommonException("请传入tokenid");
+
+        UkeyTokenUtil ukeyTokenUtil = new UkeyTokenUtil();
+        SysUser user = ukeyTokenUtil.validateLoginByCas(token, syscode, request);
+        resultObj.put("data", user);
+
+        response.setOtherData(resultObj);
+        response.setMessage(token);
+        response.setResultCode(ResultCode.RESULT_SUCCESS);
+
+
+        return response;
+    }
+
 
 }

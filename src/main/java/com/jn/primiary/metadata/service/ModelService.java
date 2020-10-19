@@ -197,6 +197,7 @@ public class ModelService {
 		HttpClientUtil httputil = new HttpClientUtil();
 		String result = httputil.get(getTableByCategoryId_url,headerMap);
 		JSONObject obj = JSON.parseObject(result);
+		logger.info("obj:"+obj);
 		JSONArray array = (JSONArray) obj.get("data");
 		logger.info("模型列表array："+array.toString());
 		List<Model> moudleList = array.parseArray(array.toString(), Model.class);

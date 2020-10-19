@@ -24,7 +24,7 @@ import net.sf.json.JSONObject;
  * 数据质量检测Controller
  */
 //@Controller
-//@RequestMapping("/dataQuality")
+//>@RequestMapping("stdglprj/dataQuality")
 public class DataQualityController{
 	@Autowired
 	private DataQualityService service;
